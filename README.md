@@ -62,19 +62,26 @@ If you're a developer and want to test the raw APIs, I've included a **Postman C
 
 ## 📸 Project Gallery
 
-Here’s a look at what we’ve built. **(Check the guide below to add your own screenshots!)**
-
 ### Home Page
-> *Show off your beautiful landing page here*
-![Home Screen](./screenshots/home.png)
+![Home Screen](./screenshots/home1.png)
+![Home Screen](./screenshots/home2.png)
+![Home Screen](./screenshots/home3.png)
+![Home Screen](./screenshots/home4.png)
+![Home Screen](./screenshots/login.png)
+![Home Screen](./screenshots/signup.png)
+
 
 ### Admin Dashboard
-> *The control center for staff*
-![Admin Panel](./screenshots/admin.png)
+![Admin Panel](./screenshots/admin login.png)
+![Admin Panel](./screenshots/admin signup.png)
+![Admin Panel](./screenshots/admin dashboard.png)
 
 ### Products & Cart
-> *Fresh dairy at a glance*
 ![Products](./screenshots/products.png)
+![Products](./screenshots/checkout.png)
+![Products](./screenshots/order success.png)
+
+### Subscription
 
 ---
 
