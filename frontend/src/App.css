@@ -685,6 +685,14 @@
     padding: 0.75rem 0;
   }
 
+  .brand-text {
+    font-size: 1.3rem;
+  }
+
+  .brand-icon {
+    font-size: 1.5rem;
+  }
+
   .menu {
     display: none;
     position: absolute;
@@ -710,11 +718,21 @@
     padding: 0.5rem;
     border-radius: 8px;
     color: var(--primary);
+    cursor: pointer;
+  }
+
+  .topbar-right {
+    gap: 0.5rem;
   }
 
   .topbar-right .nav-login span, 
   .topbar-right .welcome-text {
     display: none;
+  }
+
+  .nav-login.btn-solid {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
   }
 
   .grid-2, .grid-3, .grid-4 {
@@ -770,15 +788,36 @@
 @media (max-width: 480px) {
   h1 {
     font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  .lead {
+    font-size: 1rem;
+    line-height: 1.5;
   }
 
   .btn {
     width: 100%;
+    padding: 0.8rem 1.2rem;
+    white-space: nowrap;
+  }
+
+  .btn-lg {
+    font-size: 1rem;
+  }
+
+  .hero-container {
+    padding: 1rem 0;
+  }
+
+  .hero-image {
+    max-width: 100%;
   }
 
   .hero-metrics {
     flex-direction: column;
     align-items: center;
+    gap: 1rem;
   }
 
   .auth-card {
@@ -789,6 +828,10 @@
   .admin-table {
     display: block;
     overflow-x: auto;
+  }
+
+  .topbar-right .nav-login.btn-solid {
+    display: none; /* Hide Signup on very small screens to avoid clutter */
   }
 }
 
