@@ -1,7 +1,11 @@
-from rest_framework import viewsets
+from rest_framework import generics
 from .models import Subscription
 from .serializers import SubscriptionSerializer
 
-class SubscriptionViewSet(viewsets.ModelViewSet):
+class SubscriptionListCreateView(generics.ListCreateAPIView):
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+
+class SubscriptionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer

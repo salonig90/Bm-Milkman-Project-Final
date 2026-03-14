@@ -1,12 +1,15 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import ProductViewSet, CartViewSet, OrderViewSet
-
-router = DefaultRouter()
-router.register(r'list', ProductViewSet)
-router.register(r'cart', CartViewSet, basename='cart')
-router.register(r'orders', OrderViewSet, basename='orders')
+from django.urls import path
+from .views import (
+    ProductListCreateView, ProductDetailView,
+    CartListCreateView, CartDetailView,
+    OrderListCreateView, OrderDetailView
+)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('list/', ProductListCreateView.as_view(), name='product-list-create'),
+    path('list/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
+    path('cart/', CartListCreateView.as_view(), name='cart-list-create'),
+    path('cart/<int:pk>/', CartDetailView.as_view(), name='cart-detail'),
+    path('orders/', OrderListCreateView.as_view(), name='order-list-create'),
+    path('orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
 ]

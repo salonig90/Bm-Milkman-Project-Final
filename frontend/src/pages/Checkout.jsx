@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { CheckCircle, CreditCard, Truck, ArrowRight, ShoppingBag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Checkout = () => {
   const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      alert("Please login first to access the checkout.");
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const handlePayment = (e) => {
     e.preventDefault();

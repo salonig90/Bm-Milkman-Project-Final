@@ -9,6 +9,14 @@ const Navbar = () => {
   const { cartItems } = useCart();
   const { user, logout } = useAuth();
 
+  const handleCartClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      alert("Please login first to view your cart.");
+      window.location.href = '/login';
+    }
+  };
+
   return (
     <header className="topbar">
       <div className="container">
@@ -24,7 +32,12 @@ const Navbar = () => {
         </nav>
 
         <div className="topbar-right">
-          <Link to="/checkout" className="btn btn-icon btn-ghost nav-cart" style={{position: 'relative'}}>
+          <Link 
+            to="/checkout" 
+            className="btn btn-icon btn-ghost nav-cart" 
+            style={{position: 'relative'}}
+            onClick={handleCartClick}
+          >
             <ShoppingCart size={20} />
             {cartItems.length > 0 && (
               <span className="cart-badge">{cartItems.length}</span>

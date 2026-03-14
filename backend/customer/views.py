@@ -1,26 +1,28 @@
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from .models import Customer
 from .serializers import CustomerSerializer
 
-class CustomerRegisterView(APIView):
+class CustomerRegisterView(generics.ListCreateAPIView):
     permission_classes = [] # Allow anyone to register
-    def post(self, request):
-        serializer = CustomerSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
 
-class CustomerLoginView(APIView):
+class CustomerDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = []
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+class CustomerLoginView(generics.GenericAPIView):
+    permission_classes = []
+    serializer_class = CustomerSerializer
+
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
         try:
             customer = Customer.objects.get(email=email, password=password)
-            serializer = CustomerSerializer(customer)
+            serializer = self.get_serializer(customer)
             return Response({'message': 'Login successful', 'customer': serializer.data})
         except Customer.DoesNotExist:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)

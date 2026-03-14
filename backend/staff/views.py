@@ -1,10 +1,9 @@
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView
 from .models import StaffProfile
 from .serializers import StaffProfileSerializer, StaffLoginSerializer
 
-class StaffLoginView(GenericAPIView):
+class StaffLoginView(generics.GenericAPIView):
     permission_classes = []
     serializer_class = StaffLoginSerializer
     def post(self, request):
@@ -19,12 +18,12 @@ class StaffLoginView(GenericAPIView):
         except StaffProfile.DoesNotExist:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-class StaffRegisterView(GenericAPIView):
+class StaffRegisterView(generics.ListCreateAPIView):
     permission_classes = []
+    queryset = StaffProfile.objects.all()
     serializer_class = StaffProfileSerializer
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class StaffDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = []
+    queryset = StaffProfile.objects.all()
+    serializer_class = StaffProfileSerializer
