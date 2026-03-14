@@ -1,51 +1,76 @@
 # 🥛 DairyMart: Freshness Delivered to Your Doorstep
 
+[![Website](https://img.shields.io/badge/Website-dairymart.duckdns.org-brightgreen)](https://dairymart.duckdns.org)
+
 Welcome to **DairyMart**! This project is all about bringing the farm-fresh experience right to your kitchen. We’ve built a simple, beautiful, and reliable way for families to get their daily dose of pure milk, ghee, and more without any hassle.
 
 Whether you're looking for a one-time purchase or a recurring subscription that "just works" every morning, DairyMart has you covered.
 
 ---
 
-## 🌟 What makes DairyMart special?
+## � Deployment & Infrastructure
 
-*   **Freshness First**: Everything you see—from raw cow milk to artisan paneer—is sourced directly from our healthy farm cows. No middlemen, no compromise.
-*   **Smart Subscriptions**: Busy life? Just set up a plan (like our "Daily Fresh" or "Family Pack"), and we’ll handle the rest. You can pause or resume whenever you're away.
-*   **Real-time Pricing**: Want 500ml or 2L? The price updates instantly so you know exactly what you're paying for.
-*   **Admin Power**: We’ve built a dedicated Staff Portal for our milkmen and managers to keep track of orders, update stock, and manage users easily.
-*   **Smooth & Animated**: We believe a website should feel alive. You'll notice smooth entrance animations and hover effects that make browsing a joy.
+The project is hosted on a cloud environment with the following stack:
 
----
-
-## 🛠️ How we built it
-
-We used a modern tech stack to keep things fast and reliable:
-*   **Frontend**: React (Vite) for a snappy, interactive UI.
-*   **Backend**: Django & Django Rest Framework (DRF) to handle all the heavy lifting and data.
-*   **Icons & Style**: Lucide React for clean icons and custom CSS for that premium look.
-
----
-
-## 🚀 Getting it running on your machine
-
-### 1. Grab the code
-```bash
-git clone <your-repo-link>
-cd "MilkMan Django Project"
+```text
+Cloud VM
+ └── Ubuntu 24.04
+      ├── Nginx (Reverse Proxy)
+      ├── Gunicorn (WSGI Server)
+      ├── Django + DRF (Backend)
+      ├── React + Vite (Frontend)
+      ├── SQLite DB (Database)
+      ├── Certbot SSL (Security)
+      └── GitHub Actions (CI/CD)
 ```
 
-### 2. Start the Backend (The Brain)
+**Live Website**: [https://dairymart.duckdns.org](https://dairymart.duckdns.org)
+
+---
+
+## �🌟 Features & Highlights
+
+*   **📱 Fully Responsive**: Optimized for all devices—from desktop monitors to mobile screens.
+*   **🛒 Persistent Cart**: Your cart items are saved per user, so you can pick up where you left off.
+*   **🔒 Auth-Protected Actions**: Adding to cart and checkout require a quick login to keep your orders secure.
+*   **⚡ Modern Backend**: Powered by Django Generic API Views for a clean, standardized RESTful experience.
+*   **🎨 Premium UI**: Smooth animations with Lucide icons and a modern, clean design.
+*   **👨‍💼 Admin Dashboard**: Dedicated portal for staff to manage products, categories, and subscriptions.
+
+---
+
+## 🛠️ Tech Stack
+
+*   **Frontend**: [React](https://reactjs.org/) (Vite), [Lucide Icons](https://lucide.dev/), CSS3 (Flexbox/Grid/Animations)
+*   **Backend**: [Django](https://www.djangoproject.com/), [Django REST Framework](https://www.django-rest-framework.org/) (Generic Views)
+*   **Database**: SQLite (Development)
+*   **Auth**: Simple JWT / Session based patterns
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Python 3.10+
+- Node.js 18+
+
+### 2. Backend Setup (The Brain)
 ```bash
 cd backend
-# Setup your environment
+# Create and activate virtual environment
 python -m venv venv
-.\venv\Scripts\Activate.ps1
-# Install & Run
+.\venv\Scripts\Activate.ps1  # Windows
+# source venv/bin/activate   # Linux/macOS
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run migrations and start server
 python manage.py migrate
 python manage.py runserver
 ```
 
-### 3. Start the Frontend (The Beauty)
+### 3. Frontend Setup (The Beauty)
 ```bash
 cd frontend
 npm install
@@ -54,36 +79,43 @@ npm run dev
 
 ---
 
-## 🧪 Testing the APIs
+## 📂 Project Structure
 
-If you're a developer and want to test the raw APIs, I've included a **Postman Collection** (`milkman_collection.json`) in the root folder. Just import it into Postman, and you're good to go!
+```text
+├── backend/                # Django REST API
+│   ├── DairyMart/          # Core project settings
+│   ├── category/           # Category management
+│   ├── customer/           # Customer auth & profiles
+│   ├── product/            # Products, Cart & Orders
+│   ├── staff/              # Staff management & portal
+│   └── subscription/       # Subscription plans
+├── frontend/               # React (Vite) Application
+│   ├── src/
+│   │   ├── components/     # Shared UI components
+│   │   ├── context/        # Auth & Cart State management
+│   │   └── pages/          # Application views
+└── screenshots/            # Project previews
+```
 
 ---
 
-## 📸 Project Gallery
+## 🧪 API Testing
 
-### Home Page
-![Home Screen](./screenshots/home1.png)
-![Home Screen](./screenshots/home2.png)
-![Home Screen](./screenshots/home3.png)
-![Home Screen](./screenshots/home4.png)
-![Home Screen](./screenshots/login.png)
-![Home Screen](./screenshots/signup.png)
+A Postman Collection (`milkman_collection.json`) is included in the root directory for quick API testing. All endpoints follow standard REST patterns (GET, POST, PUT, DELETE).
 
+---
 
-### Admin Dashboard
-![Admin Panel](./screenshots/admin login.png)
-![Admin Panel](./screenshots/admin signup.png)
-![Admin Panel](./screenshots/admin dashboard.png)
+## 📸 Screenshots
 
-### Products & Cart
-![Products](./screenshots/products.png)
-![Products](./screenshots/checkout.png)
-![Products](./screenshots/order success.png)
+<p align="center">
+  <img src="./screenshots/home1.png" width="400" />
+  <img src="./screenshots/products.png" width="400" />
+</p>
+<p align="center">
+  <img src="./screenshots/admin dashboard.png" width="400" />
+  <img src="./screenshots/checkout.png" width="400" />
+</p>
 
-### Subscription
-![Subscription](./screenshots/subscription1.png)
-![Subscription](./screenshots/subscription2.png)
 ---
 
 
