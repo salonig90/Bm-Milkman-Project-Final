@@ -67,14 +67,19 @@ pip install -r requirements.txt
 
 # Run migrations and start server
 python manage.py migrate
-python manage.py runserver
+python manage.py runserver 7500
 ```
 
 ### 3. Frontend Setup (The Beauty)
 ```bash
 cd frontend
 npm install
+
+# Start Main Website (Port 3000)
 npm run dev
+
+# Start Admin Dashboard (Port 3001)
+npm run admin
 ```
 
 ---
@@ -82,18 +87,18 @@ npm run dev
 ## 📂 Project Structure
 
 ```text
-├── backend/                # Django REST API
+├── backend/                # Django REST API (Port 7500)
 │   ├── DairyMart/          # Core project settings
 │   ├── category/           # Category management
 │   ├── customer/           # Customer auth & profiles
-│   ├── product/            # Products, Cart & Orders
+│   ├── product/            # Products (CRUD), Cart & Orders
 │   ├── staff/              # Staff management & portal
 │   └── subscription/       # Subscription plans
 ├── frontend/               # React (Vite) Application
 │   ├── src/
 │   │   ├── components/     # Shared UI components
 │   │   ├── context/        # Auth & Cart State management
-│   │   └── pages/          # Application views
+│   │   └── pages/          # Application views (Port 3000: Main, Port 3001: Admin)
 └── screenshots/            # Project previews
 ```
 

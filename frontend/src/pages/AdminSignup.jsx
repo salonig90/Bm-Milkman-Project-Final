@@ -19,7 +19,7 @@ const AdminSignup = () => {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/staff/register/', {
+      const response = await fetch('/api/staff/register/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

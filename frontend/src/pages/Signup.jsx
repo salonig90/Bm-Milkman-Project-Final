@@ -1,13 +1,46 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowLeft, Phone } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, Phone, MapPin } from 'lucide-react';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: 'Default Address', // Defaulting as it's not in the original form but required by model
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    alert('Account created successfully! You can now log in.');
-    navigate('/login');
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/customer/register/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Account created successfully! You can now log in.');
+        navigate('/login');
+      } else {
+        setError(Object.values(data).flat().join(', ') || 'Registration failed');
+      }
+    } catch (err) {
+      setError('Connection failed. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -21,40 +54,78 @@ const Signup = () => {
             <span className="eyebrow">Get Started</span>
             <h2>Create your account</h2>
           </div>
+
+          {error && <div className="error-alert mt-4" style={{color: 'red', textAlign: 'center'}}>{error}</div>}
+
           <form className="auth-form mt-4" onSubmit={handleSignup}>
             <div className="form-group">
               <label>Full Name</label>
               <div className="input-with-icon">
                 <User size={18} />
-                <input type="text" placeholder="User user" className="form-control" required />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Username</label>
-              <div className="input-with-icon">
-                <User size={18} />
-                <input type="text" placeholder="user" className="form-control" required />
+                <input 
+                  type="text" 
+                  placeholder="User user" 
+                  className="form-control" 
+                  required 
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                />
               </div>
             </div>
             <div className="form-group">
               <label>Email Address</label>
               <div className="input-with-icon">
                 <Mail size={18} />
-                <input type="email" placeholder="user@example.com" className="form-control" required />
+                <input 
+                  type="email" 
+                  placeholder="user@example.com" 
+                  className="form-control" 
+                  required 
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
               </div>
             </div>
             <div className="form-group">
               <label>Phone Number</label>
               <div className="input-with-icon">
                 <Phone size={18} />
-                <input type="tel" placeholder="+91 7378882022" className="form-control" required />
+                <input 
+                  type="tel" 
+                  placeholder="+91 7378882022" 
+                  className="form-control" 
+                  required 
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Delivery Address</label>
+              <div className="input-with-icon">
+                <MapPin size={18} />
+                <input 
+                  type="text" 
+                  placeholder="123 Farm Lane, City" 
+                  className="form-control" 
+                  required 
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                />
               </div>
             </div>
             <div className="form-group">
               <label>Password</label>
               <div className="input-with-icon">
                 <Lock size={18} />
-                <input type="password" placeholder="********" className="form-control" required />
+                <input 
+                  type="password" 
+                  placeholder="********" 
+                  className="form-control" 
+                  required 
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                />
               </div>
             </div>
             <div className="form-actions mt-2">
@@ -62,8 +133,8 @@ const Signup = () => {
                 <input type="checkbox" required /> I agree to the <a href="#" className="text-highlight">Terms & Conditions</a>
               </label>
             </div>
-            <button type="submit" className="btn btn-solid btn-lg full-width mt-4">
-              Sign Up
+            <button type="submit" className="btn btn-solid btn-lg full-width mt-4" disabled={loading}>
+              {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
           </form>
           <div className="auth-footer mt-4 text-center">

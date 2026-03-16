@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShoppingCart, Star, Search, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
@@ -7,119 +7,58 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSizes, setSelectedSizes] = useState({});
   const { addToCart, lastAdded } = useCart();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const categories = ['All', 'Milk', 'Ghee', 'Milk Products'];
 
-  const products = [
-    {
-      id: 1,
-      name: "Raw Cow Milk",
-      category: "Milk",
-      description: "Freshly milked cow milk, no processing, pure and rich.",
-      basePrice: 65,
-      sizes: [
-        { label: "500ml", multiplier: 0.5 },
-        { label: "1L", multiplier: 1 },
-        { label: "2L", multiplier: 1.9 }
-      ],
-      image: "https://nutritionsource.hsph.harvard.edu/wp-content/uploads/2024/11/AdobeStock_354060824-1024x683.jpeg",
-      rating: 4.9
-    },
-    {
-      id: 2,
-      name: "Premium Buffalo Milk",
-      category: "Milk",
-      description: "High-fat, creamy buffalo milk for a richer taste.",
-      basePrice: 85,
-      sizes: [
-        { label: "500ml", multiplier: 0.5 },
-        { label: "1L", multiplier: 1 },
-        { label: "2L", multiplier: 1.9 }
-      ],
-      image: "https://mydiagnostics.in/cdn/shop/articles/img-1748326586409_1024x1024.jpg?v=1748327918",
-      rating: 4.8
-    },
-    {
-      id: 3,
-      name: "Pure Cow Ghee",
-      category: "Ghee",
-      description: "Traditional golden ghee made from cultured butter.",
-      basePrice: 650,
-      sizes: [
-        { label: "250g", multiplier: 0.5 },
-        { label: "500g", multiplier: 1 },
-        { label: "1kg", multiplier: 1.9 }
-      ],
-      image: "https://5.imimg.com/data5/SELLER/Default/2023/3/294487755/BY/OE/YL/186787557/pure-ghee.jpg",
-      rating: 5.0
-    },
-    {
-      id: 4,
-      name: "Farm Fresh Paneer",
-      category: "Milk Products",
-      description: "Soft, spongy paneer made daily in small batches.",
-      basePrice: 90,
-      sizes: [
-        { label: "200g", multiplier: 1 },
-        { label: "500g", multiplier: 2.4 }
-      ],
-      image: "https://himalayancreamery.com/cdn/shop/files/WhatsAppImage2025-06-17at15.03.17_2_dc58008d-b4c8-44c1-8dd7-ee0a26ffe1b9.jpg?v=1751224019",
-      rating: 4.9
-    },
-    {
-      id: 5,
-      name: "Thick Set Curd",
-      category: "Milk Products",
-      description: "Creamy probiotic curd set traditionally in pots.",
-      basePrice: 45,
-      sizes: [
-        { label: "500g", multiplier: 1 },
-        { label: "1kg", multiplier: 1.8 }
-      ],
-      image: "https://cdnasd.countrydelight.in/New_product_image/Low%20fat%20Dahi%20-%20PDP%204_1681126973430.jpeg",
-      rating: 5
-    },
-    {
-      id: 6,
-      name: "Organic Butter",
-      category: "Milk Products",
-      description: "Hand-churned butter from grass-fed cows.",
-      basePrice: 120,
-      sizes: [
-        { label: "100g", multiplier: 1 },
-        { label: "250g", multiplier: 2.3 },
-        { label: "500g", multiplier: 4.4 }
-      ],
-      image: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&q=80&w=800",
-      rating: 4.8
-    }
-  ];
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-  const handleSizeSelect = (productId, sizeIndex) => {
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products/');
+      if (response.ok) {
+        const data = await response.json();
+        // Handle both direct array and paginated response (DRF style)
+        setProducts(Array.isArray(data) ? data : (data.results || data.products || []));
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSizeSelect = (productId, sizeLabel) => {
     setSelectedSizes(prev => ({
       ...prev,
-      [productId]: sizeIndex
+      [productId]: sizeLabel
     }));
   };
 
   const getProductPrice = (product) => {
-    const selectedIndex = selectedSizes[product.id] || 0;
-    const size = product.sizes[selectedIndex];
-    return Math.round(product.basePrice * size.multiplier);
-  };
-
-  const getSelectedSizeLabel = (product) => {
-    const selectedIndex = selectedSizes[product.id] || 0;
-    return product.sizes[selectedIndex].label;
+    if (product.price_data && product.price_data.length > 0) {
+      const quantityOptions = product.price_data.map(pd => pd.quantity);
+      const selectedSize = selectedSizes[product.id] || quantityOptions[0];
+      const tier = product.price_data.find(pd => pd.quantity === selectedSize);
+      return tier ? tier.price : product.price;
+    }
+    return product.price;
   };
 
   const handleAddToCart = (product) => {
     const price = getProductPrice(product);
-    const size = getSelectedSizeLabel(product);
+    const quantityOptions = product.price_data && product.price_data.length > 0 
+      ? product.price_data.map(pd => pd.quantity) 
+      : (product.quantity ? product.quantity.split(',').map(q => q.trim()) : ['1L']);
+    
+    const selectedSize = selectedSizes[product.id] || quantityOptions[0];
     addToCart({
       ...product,
       price: `₹${price}`,
-      name: `${product.name} (${size})`
+      name: `${product.name} (${selectedSize})`
     });
   };
 
@@ -165,31 +104,39 @@ const Products = () => {
           </div>
 
           <div className="grid grid-3 mt-4">
-            {filteredProducts.length > 0 ? (
+            {loading ? (
+              <div className="col-span-full text-center py-10">
+                <div className="spinner"></div>
+                <p>Loading products...</p>
+              </div>
+            ) : filteredProducts.length > 0 ? (
               filteredProducts.map((product, index) => {
                 const currentPrice = getProductPrice(product);
-                const selectedIndex = selectedSizes[product.id] || 0;
+                const quantityOptions = product.price_data && product.price_data.length > 0
+                  ? product.price_data.map(pd => pd.quantity)
+                  : (product.quantity ? product.quantity.split(',').map(q => q.trim()) : ['1L']);
+                const selectedSize = selectedSizes[product.id] || quantityOptions[0];
 
                 return (
                   <div key={product.id} className={`product-card card animate-fade-up delay-${(index % 4) + 1}`}>
                     <div className="product-image">
-                      <img src={product.image} alt={product.name} />
+                      <img src={product.image || product.image_url || "https://via.placeholder.com/400x300?text=No+Image"} alt={product.name} />
                       <span className="product-tag">{product.category}</span>
                       <div className="product-rating">
-                        <Star size={14} fill="currentColor" /> {product.rating}
+                        <Star size={14} fill="currentColor" /> {product.rating || '4.9'}
                       </div>
                     </div>
                     <div className="product-info card-body">
                       <h3>{product.name}</h3>
-                      <p className="description">{product.description}</p>
+                      <p className="description">{product.description || 'Fresh dairy product directly from our farm.'}</p>
                       <div className="product-sizes">
-                        {product.sizes.map((size, idx) => (
+                        {quantityOptions.map(q => (
                           <button 
-                            key={size.label} 
-                            className={`size-badge ${selectedIndex === idx ? 'active' : ''}`}
-                            onClick={() => handleSizeSelect(product.id, idx)}
+                            key={q} 
+                            className={`size-badge ${selectedSize === q ? 'active' : ''}`}
+                            onClick={() => handleSizeSelect(product.id, q)}
                           >
-                            {size.label}
+                            {q}
                           </button>
                         ))}
                       </div>
@@ -207,8 +154,8 @@ const Products = () => {
                 );
               })
             ) : (
-              <div className="no-results text-center">
-                <h3>No products found for "{searchQuery}"</h3>
+              <div className="no-results text-center col-span-full py-10">
+                <h3>No products found</h3>
                 <p>Try searching for something else like "milk" or "ghee".</p>
               </div>
             )}

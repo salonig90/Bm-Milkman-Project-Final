@@ -18,7 +18,7 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/staff/login/', {
+      const response = await fetch('/api/staff/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,13 +41,21 @@ const AdminLogin = () => {
     }
   };
 
+  const isAdminPort = window.location.port === '3001';
+
   return (
     <div className="auth-page animate-fade">
       <div className="auth-container">
         <div className="auth-card card animate-scale">
-          <Link to="/" className="back-link">
-            <ArrowLeft size={18} /> Back to site
-          </Link>
+          {isAdminPort ? (
+            <a href="http://localhost:3000" className="back-link">
+              <ArrowLeft size={18} /> Back to site
+            </a>
+          ) : (
+            <Link to="/" className="back-link">
+              <ArrowLeft size={18} /> Back to site
+            </Link>
+          )}
           <div className="auth-header text-center">
             <div className="auth-icon-wrap" style={{background: 'var(--primary)', color: 'white', margin: '0 auto 1.5rem'}}>
               <ShieldCheck size={32} />

@@ -6,13 +6,41 @@ import { useAuth } from '../context/AuthContext';
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [username, setUsername] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    login(username || 'User');
-    alert('Logged in successfully!');
-    navigate('/');
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/customer/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        login(data.customer.name || 'User');
+        alert('Logged in successfully!');
+        navigate('/');
+      } else {
+        setError(data.error || 'Invalid credentials');
+      }
+    } catch (err) {
+      setError('Connection failed. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,18 +54,21 @@ const Login = () => {
             <span className="eyebrow">Welcome Back</span>
             <h2>Sign in to DairyMart</h2>
           </div>
+
+          {error && <div className="error-alert mt-4" style={{color: 'red', textAlign: 'center'}}>{error}</div>}
+
           <form className="auth-form mt-4" onSubmit={handleLogin}>
             <div className="form-group">
-              <label>Username</label>
+              <label>Email Address</label>
               <div className="input-with-icon">
-                <User size={18} />
+                <Mail size={18} />
                 <input 
-                  type="text" 
-                  placeholder="johndoe123" 
+                  type="email" 
+                  placeholder="your@email.com" 
                   className="form-control" 
                   required 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
               </div>
             </div>
@@ -45,7 +76,14 @@ const Login = () => {
               <label>Password</label>
               <div className="input-with-icon">
                 <Lock size={18} />
-                <input type="password" placeholder="********" className="form-control" required />
+                <input 
+                  type="password" 
+                  placeholder="********" 
+                  className="form-control" 
+                  required 
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                />
               </div>
             </div>
             <div className="form-actions mt-2 flex justify-between">
@@ -54,8 +92,8 @@ const Login = () => {
               </label>
               <a href="#" className="forgot-password">Forgot password?</a>
             </div>
-            <button type="submit" className="btn btn-solid btn-lg full-width mt-4">
-              Sign In
+            <button type="submit" className="btn btn-solid btn-lg full-width mt-4" disabled={loading}>
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
           <div className="auth-footer mt-4 text-center">
