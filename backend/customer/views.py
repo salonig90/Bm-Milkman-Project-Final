@@ -3,6 +3,11 @@ from rest_framework.response import Response
 from .models import Customer
 from .serializers import CustomerSerializer
 
+class CustomerListView(generics.ListAPIView):
+    permission_classes = []
+    queryset = Customer.objects.all().order_by('-id')
+    serializer_class = CustomerSerializer
+
 class CustomerRegisterView(generics.ListCreateAPIView):
     permission_classes = [] # Allow anyone to register
     queryset = Customer.objects.all()

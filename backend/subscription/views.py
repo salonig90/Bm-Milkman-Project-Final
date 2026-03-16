@@ -3,7 +3,7 @@ from .models import Subscription
 from .serializers import SubscriptionSerializer
 
 class SubscriptionListCreateView(generics.ListCreateAPIView):
-    queryset = Subscription.objects.all()
+    queryset = Subscription.objects.all().order_by('-created_at')
     serializer_class = SubscriptionSerializer
 
 class SubscriptionDetailView(generics.RetrieveUpdateDestroyAPIView):

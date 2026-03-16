@@ -19,7 +19,7 @@ class CartDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CartSerializer
 
 class OrderListCreateView(generics.ListCreateAPIView):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at')
     serializer_class = OrderSerializer
 
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):

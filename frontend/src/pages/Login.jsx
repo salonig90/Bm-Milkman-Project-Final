@@ -30,7 +30,7 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        login(data.customer.name || 'User');
+        login(data.customer);
         alert('Logged in successfully!');
         navigate('/');
       } else {

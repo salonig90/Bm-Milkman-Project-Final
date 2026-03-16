@@ -32,17 +32,15 @@ const AdminDashboard = () => {
   
   // Data States
   const [products, setProducts] = useState([]);
-  const [subscriptions, setSubscriptions] = useState([
-    { id: 1, user: "Amit Sharma", plan: "Daily Fresh", product: "Milk", status: "Active", start: "2024-03-01" },
-    { id: 2, user: "Priya Patel", plan: "Family Pack", product: "Ghee", status: "Paused", start: "2024-02-15" },
-    { id: 3, user: "Rahul Verma", plan: "Daily Fresh", product: "Milk Products", status: "Active", start: "2024-03-05" },
-  ]);
-
-  const [users, setUsers] = useState([
-    { id: 1, name: "Amit Sharma", email: "amit@gmail.com", joined: "2024-01-10", orders: 12 },
-    { id: 2, name: "Priya Patel", email: "priya@yahoo.com", joined: "2024-02-05", orders: 5 },
-    { id: 3, name: "Rahul Verma", email: "rahul@outlook.com", joined: "2024-02-28", orders: 8 },
-  ]);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState({
+    total_orders: '0',
+    active_users: '0',
+    subscribers: '0',
+    revenue: '₹0'
+  });
 
   // Modal State
   const [showProductModal, setShowProductModal] = useState(false);
@@ -67,8 +65,23 @@ const AdminDashboard = () => {
     } else {
       setAdmin(JSON.parse(savedAdmin));
       fetchProducts();
+      fetchSubscriptions();
+      fetchUsers();
+      fetchStats();
+      fetchRecentOrders();
     }
   }, [navigate]);
+
+  useEffect(() => {
+    if (!admin) return;
+    const intervalId = setInterval(() => {
+      fetchStats();
+      fetchRecentOrders();
+      fetchSubscriptions();
+      fetchUsers();
+    }, 10000);
+    return () => clearInterval(intervalId);
+  }, [admin]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -82,6 +95,94 @@ const AdminDashboard = () => {
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubscriptions = async () => {
+    try {
+      const response = await fetch('/api/subscriptions/');
+      if (response.ok) {
+        const data = await response.json();
+        setSubscriptions(data);
+      }
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+    }
+  };
+
+  const handleUpdateSubscriptionStatus = async (id, newStatus) => {
+    try {
+      const response = await fetch(`/api/subscriptions/${id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (response.ok) {
+        fetchSubscriptions();
+      }
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+    }
+  };
+
+  const handleDeleteSubscription = async (id) => {
+    if (window.confirm('Are you sure you want to delete this subscription?')) {
+      try {
+        const response = await fetch(`/api/subscriptions/${id}/`, {
+          method: 'DELETE',
+        });
+        if (response.ok) {
+          fetchSubscriptions();
+        }
+      } catch (error) {
+        console.error('Error deleting subscription:', error);
+      }
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/staff/stats/');
+      if (response.ok) {
+        const data = await response.json();
+        setDashboardStats(data);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const fetchRecentOrders = async () => {
+    try {
+      const response = await fetch('/api/products/orders/');
+      if (response.ok) {
+        const data = await response.json();
+        setRecentOrders(data.slice(0, 5));
+      }
+    } catch (error) {
+      console.error('Error fetching recent orders:', error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/customers/');
+      if (response.ok) {
+        const data = await response.json();
+        // Standardize user data for the dashboard
+        const formattedUsers = data.map(u => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone,
+          address: u.address,
+          joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : '2024-03-16',
+          orders: 0 
+        }));
+        setUsers(formattedUsers);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
   };
 
@@ -216,7 +317,11 @@ const AdminDashboard = () => {
       return products.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
     }
     if (activeTab === 'subscriptions') {
-      return subscriptions.filter(s => s.user.toLowerCase().includes(query) || s.plan.toLowerCase().includes(query));
+      return subscriptions.filter(s => 
+        (s.customer_name && s.customer_name.toLowerCase().includes(query)) || 
+        (s.plan_name && s.plan_name.toLowerCase().includes(query)) ||
+        (s.customer_email && s.customer_email.toLowerCase().includes(query))
+      );
     }
     if (activeTab === 'users') {
       return users.filter(u => u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
@@ -225,10 +330,10 @@ const AdminDashboard = () => {
   };
 
   const stats = [
-    { label: 'Total Orders', value: '1,284', icon: <Package size={20} />, color: 'var(--primary)' },
-    { label: 'Active Users', value: users.length.toString(), icon: <Users size={20} />, color: '#3b82f6' },
-    { label: 'Subscribers', value: subscriptions.filter(s => s.status === 'Active').length.toString(), icon: <Calendar size={20} />, color: '#8b5cf6' },
-    { label: 'Revenue', value: '₹42,500', icon: <TrendingUp size={20} />, color: '#10b981' }
+    { label: 'Total Orders', value: dashboardStats.total_orders, icon: <Package size={20} />, color: 'var(--primary)' },
+    { label: 'Active Users', value: dashboardStats.active_users, icon: <Users size={20} />, color: '#3b82f6' },
+    { label: 'Subscribers', value: dashboardStats.subscribers, icon: <Calendar size={20} />, color: '#8b5cf6' },
+    { label: 'Revenue', value: dashboardStats.revenue, icon: <TrendingUp size={20} />, color: '#10b981' }
   ];
 
   if (!admin) return null;
@@ -317,11 +422,61 @@ const AdminDashboard = () => {
               <div className="grid grid-2 mt-4">
                 <div className="card padding-3 animate-fade-up">
                   <h3>Recent Orders</h3>
-                  <p className="text-muted">You have 12 new orders today.</p>
+                  <div className="table-responsive mt-3">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Email</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentOrders.map(order => (
+                          <tr key={order.id}>
+                            <td>#{order.id}</td>
+                            <td>{order.customer_email}</td>
+                            <td>
+                              <span className={`status-badge ${order.status.toLowerCase() === 'delivered' ? 'success' : 'warning'}`}>
+                                {order.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        {recentOrders.length === 0 && (
+                          <tr>
+                            <td colSpan="3" className="text-center py-3">No recent orders.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
                 <div className="card padding-3 animate-fade-up" style={{animationDelay: '0.2s'}}>
                   <h3>Active Subscriptions</h3>
-                  <p className="text-muted">Total recurring revenue: ₹18,200</p>
+                  <div className="table-responsive mt-3">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Customer</th>
+                          <th>Type</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {subscriptions.slice(0, 5).map(sub => (
+                          <tr key={sub.id}>
+                            <td>{sub.customer_name}</td>
+                            <td>{sub.plan_name || sub.product_name}</td>
+                          </tr>
+                        ))}
+                        {subscriptions.length === 0 && (
+                          <tr>
+                            <td colSpan="2" className="text-center py-3">No active subscriptions.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </>
@@ -394,26 +549,63 @@ const AdminDashboard = () => {
                   <thead>
                     <tr>
                       <th>Customer</th>
-                      <th>Plan</th>
-                      <th>Product</th>
+                      <th>Email</th>
+                      <th>Type</th>
+                      <th>Category/Product</th>
                       <th>Status</th>
                       <th>Start Date</th>
+                      <th>End Date</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData().map(sub => (
-                      <tr key={sub.id}>
-                        <td><strong>{sub.user}</strong></td>
-                        <td>{sub.plan}</td>
-                        <td>{sub.product}</td>
-                        <td>
-                          <span className={`status-badge ${sub.status === 'Active' ? 'success' : 'warning'}`}>
-                            {sub.status}
-                          </span>
-                        </td>
-                        <td>{sub.start}</td>
+                    {filteredData().length > 0 ? (
+                      filteredData().map(sub => (
+                        <tr key={sub.id}>
+                          <td>
+                            <strong>{sub.customer_name}</strong>
+                          </td>
+                          <td>{sub.customer_email}</td>
+                          <td>{sub.plan_name ? 'Plan' : 'Product'}</td>
+                          <td>
+                            <div>{sub.plan_name || sub.product_name}</div>
+                            <div className="text-muted" style={{fontSize: '0.8rem'}}>{sub.category} ({sub.quantity})</div>
+                          </td>
+                          <td>
+                            <select 
+                              value={sub.status} 
+                              onChange={(e) => handleUpdateSubscriptionStatus(sub.id, e.target.value)}
+                              className={`status-select ${sub.status.toLowerCase()}`}
+                              style={{
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                border: '1px solid var(--line)',
+                                fontSize: '0.85rem'
+                              }}
+                            >
+                              <option value="Start">Start</option>
+                              <option value="Active">Active</option>
+                              <option value="Pause">Pause</option>
+                              <option value="Resume">Resume</option>
+                              <option value="Stop">Stop</option>
+                            </select>
+                          </td>
+                          <td>{sub.start_date}</td>
+                          <td>{sub.end_date || 'N/A'}</td>
+                          <td>
+                            <div className="table-actions">
+                              <button className="btn-icon-small text-danger" onClick={() => handleDeleteSubscription(sub.id)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className="text-center py-5">No subscriptions found.</td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -428,23 +620,35 @@ const AdminDashboard = () => {
                     <tr>
                       <th>Name</th>
                       <th>Email</th>
+                      <th>Phone</th>
+                      <th>Address</th>
                       <th>Joined</th>
-                      <th>Orders</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData().map(user => (
-                      <tr key={user.id}>
-                        <td><strong>{user.name}</strong></td>
-                        <td>{user.email}</td>
-                        <td>{user.joined}</td>
-                        <td>{user.orders}</td>
-                        <td>
-                          <button className="btn-icon-small"><MoreVertical size={16} /></button>
-                        </td>
+                    {filteredData().length > 0 ? (
+                      filteredData().map(user => (
+                        <tr key={user.id}>
+                          <td><strong>{user.name}</strong></td>
+                          <td>{user.email}</td>
+                          <td>{user.phone || 'N/A'}</td>
+                          <td>
+                            <div style={{maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}} title={user.address}>
+                              {user.address || 'N/A'}
+                            </div>
+                          </td>
+                          <td>{user.joined}</td>
+                          <td>
+                            <button className="btn-icon-small text-danger"><Trash2 size={16} /></button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="text-center py-5">No customers found.</td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>

@@ -6,10 +6,11 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const Checkout = () => {
   const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -18,15 +19,73 @@ const Checkout = () => {
     }
   }, [user, navigate]);
 
-  const handlePayment = (e) => {
+  const resolveCustomerEmail = async () => {
+    if (user?.email) return String(user.email).trim();
+
+    const lookupName = String(user?.username || user?.name || '').trim().toLowerCase();
+    if (!lookupName) return null;
+
+    try {
+      const response = await fetch('/api/customers/');
+      if (!response.ok) return null;
+      const customers = await response.json();
+      const match = (customers || []).find(
+        (c) => String(c?.name || '').trim().toLowerCase() === lookupName
+      );
+      if (match?.email) {
+        updateUser({ ...match, username: user?.username || match.name });
+        return String(match.email).trim();
+      }
+    } catch (_) {
+      // ignore
+    }
+
+    return null;
+  };
+
+  const handlePayment = async (e) => {
     e.preventDefault();
+    const customerEmail = await resolveCustomerEmail();
+    if (!customerEmail) {
+      alert('Your account does not have an email on file. Please log in again.');
+      return;
+    }
+    if (cartItems.length === 0) return;
+
     setIsPaying(true);
-    // Simulate payment delay
-    setTimeout(() => {
+    try {
+      // Create one Order row per cart item (backend Order model is per product).
+      await Promise.all(
+        cartItems.map((item) =>
+          fetch('/api/products/orders/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              customer_email: customerEmail,
+              product: item.id,
+              quantity: item.quantity,
+              status: 'Pending',
+            }),
+          }).then(async (r) => {
+            if (!r.ok) {
+              const err = await r.json().catch(() => ({}));
+              throw new Error(JSON.stringify(err));
+            }
+          })
+        )
+      );
+
+      // Small delay to keep the existing "processing" feel.
+      setTimeout(() => {
+        setOrderPlaced(true);
+        clearCart();
+      }, 600);
+    } catch (err) {
+      console.error('Order creation failed:', err);
+      alert('Failed to place order. Please try again.');
+    } finally {
       setIsPaying(false);
-      setOrderPlaced(true);
-      clearCart();
-    }, 2000);
+    }
   };
 
   if (orderPlaced) {
@@ -114,7 +173,14 @@ const Checkout = () => {
             <form className="mt-4" onSubmit={handlePayment}>
               <div className="form-group">
                 <label>Delivery Address</label>
-                <textarea className="form-control" rows="3" placeholder="Enter your full address" required></textarea>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  placeholder="Enter your full address"
+                  required
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                ></textarea>
               </div>
               
               <div className="payment-options mt-4">
