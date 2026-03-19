@@ -11,31 +11,39 @@ jobs:
 
     steps:
 
-      - name: Deploy to Azure VM
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Azure VM via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: 20.70.212.160
-          username: salonig
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           script: |
-            cd ~/Bm-Milkman-Project-Final || git clone https://github.com/salonig90/Bm-Milkman-Project-Final.git
-            cd Bm-Milkman-Project-Final
+            echo "Connected to VM"
 
+            cd ~/Bm-Milkman-Project-Final || exit
+
+            echo "Pull latest code"
             git pull origin main
 
-            # BACKEND
+            echo "Backend setup"
             cd backend
-            source venv/bin/activate || python3 -m venv venv && source venv/bin/activate
+            source venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate
-            sudo systemctl restart milkman-backend
+            sudo systemctl restart milkman
 
-            # FRONTEND
+            echo "Frontend build"
             cd ../frontend
             npm install
             npm run build
             sudo rm -rf /var/www/dairymart/*
             sudo cp -r dist/* /var/www/dairymart/
 
-            # Restart Nginx
+            echo "Restart Nginx"
             sudo systemctl restart nginx
+
+            echo "Deployment done"
