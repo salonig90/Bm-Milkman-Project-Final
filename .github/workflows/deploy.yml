@@ -1,0 +1,41 @@
+name: Deploy Milkman Project
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Deploy to Azure VM
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 20.70.212.160
+          username: salonig
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/Bm-Milkman-Project-Final || git clone https://github.com/salonig90/Bm-Milkman-Project-Final.git
+            cd Bm-Milkman-Project-Final
+
+            git pull origin main
+
+            # BACKEND
+            cd backend
+            source venv/bin/activate || python3 -m venv venv && source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate
+            sudo systemctl restart milkman-backend
+
+            # FRONTEND
+            cd ../frontend
+            npm install
+            npm run build
+            sudo rm -rf /var/www/dairymart/*
+            sudo cp -r dist/* /var/www/dairymart/
+
+            # Restart Nginx
+            sudo systemctl restart nginx
