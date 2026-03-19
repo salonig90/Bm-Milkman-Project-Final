@@ -17,29 +17,34 @@ jobs:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
+        port: 22
 
         script: |
-          cd ~/Bm-Milkman-Project-Final
+          echo "✅ Connected to VM"
+
+          cd ~/Bm-Milkman-Project-Final || exit 1
 
           echo "📥 Pull latest code"
           git pull origin main
 
           echo "⚙️ Backend setup"
-          cd backend
+          cd backend || exit 1
           source venv/bin/activate
           pip install -r requirements.txt
 
-          echo "🔄 Restart Django"
+          echo "🔄 Restart backend"
           sudo systemctl restart milkman-backend
 
           echo "⚛️ Build frontend"
-          cd ../frontend
+          cd ../frontend || exit 1
           npm install
           npm run build
 
-          echo "📁 Copy build"
+          echo "📁 Deploy frontend"
           sudo rm -rf /var/www/dairymart/*
           sudo cp -r dist/* /var/www/dairymart/
 
-          echo "🔄 Restart Nginx"
+          echo "🔄 Restart nginx"
           sudo systemctl restart nginx
+
+          echo "🎉 Deployment complete"
